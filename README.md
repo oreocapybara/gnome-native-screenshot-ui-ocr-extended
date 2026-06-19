@@ -1,1 +1,1 @@
-# gnome-screenshot-ocr
+# Native Screenshot UI OCR Extended

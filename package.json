@@ -8,16 +8,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oreocapybara/gnome-screenshot-ocr.git"
+    "url": "git+https://github.com/oreocapybara/gnome-native-screenshot-ui-ocr-extended.git"
   },
   "keywords": [],
   "author": "",
   "license": "GPL-2.0-or-later",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/oreocapybara/gnome-screenshot-ocr/issues"
+    "url": "https://github.com/oreocapybara/gnome-native-screenshot-ui-ocr-extended/issues"
   },
-  "homepage": "https://github.com/oreocapybara/gnome-screenshot-ocr#readme",
+  "homepage": "https://github.com/oreocapybara/gnome-native-screenshot-ui-ocr-extended#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.5.0"
