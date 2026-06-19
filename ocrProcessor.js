@@ -3,6 +3,8 @@ import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import * as log from './log.js';
+
 Gio._promisify(Gio.Subprocess.prototype, 'communicate_utf8_async');
 
 function ocrError(code, message) {
@@ -25,18 +27,15 @@ function _setSensitive(widget, sensitive) {
 // unusable while an OCR capture is in progress - Selection-only, no
 // recording, cursor forced off (OCR never wants the pointer baked in).
 function _restrictUiForOcr(ui) {
-    _setSensitive(ui._screenButton, false);
-    _setSensitive(ui._windowButton, false);
-    _setSensitive(ui._castButton, false);
+    const disabledButtons = [ui._screenButton, ui._windowButton, ui._castButton];
+    disabledButtons.forEach(button => _setSensitive(button, false));
 
     const cursorWasChecked = ui._showPointerButton.checked;
     ui._showPointerButton.checked = false;
     _setSensitive(ui._showPointerButton, false);
 
     return () => {
-        _setSensitive(ui._screenButton, true);
-        _setSensitive(ui._windowButton, true);
-        _setSensitive(ui._castButton, true);
+        disabledButtons.forEach(button => _setSensitive(button, true));
         _setSensitive(ui._showPointerButton, true);
         ui._showPointerButton.checked = cursorWasChecked;
     };
@@ -128,6 +127,18 @@ function _captureViaNativeUI() {
     });
 }
 
+// Tesseract emits a single '\n' for line-wraps within a paragraph and '\n\n'
+// for actual paragraph breaks. Copying that raw would paste wrapped
+// sentences as broken-looking separate lines, so single newlines are
+// rejoined into flowing text while real paragraph breaks are kept.
+function _reflowText(text) {
+    return text
+        .split(/\n{2,}/)
+        .map(paragraph => paragraph.replace(/\n/g, ' ').replace(/ {2,}/g, ' ').trim())
+        .filter(paragraph => paragraph.length > 0)
+        .join('\n\n');
+}
+
 async function _runTesseract(filePath) {
     let proc;
     try {
@@ -144,14 +155,14 @@ async function _runTesseract(filePath) {
     if (!proc.get_successful())
         throw ocrError('TESSERACT_FAILED', stderr.trim() || 'tesseract exited with an error');
 
-    return stdout.trim();
+    return _reflowText(stdout);
 }
 
 function _cleanupFile(filePath) {
     try {
         Gio.File.new_for_path(filePath).delete(null);
     } catch (e) {
-        console.warn('[ocr-to-clipboard] failed to clean up', filePath, e);
+        log.warn('failed to clean up', filePath, e);
     }
 }
 

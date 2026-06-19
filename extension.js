@@ -12,6 +12,7 @@ import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { captureAndOcr } from './ocrProcessor.js';
+import * as log from './log.js';
 
 const OcrIndicator = GObject.registerClass(
 class OcrIndicator extends PanelMenu.Button {
@@ -61,7 +62,7 @@ export default class OcrToClipboardExtension extends Extension {
         try {
             this._patchScreenshotUI();
         } catch (e) {
-            console.warn('[ocr-to-clipboard] failed to add button to screenshot UI', e);
+            log.warn('failed to add button to screenshot UI', e);
         }
     }
 
@@ -81,7 +82,7 @@ export default class OcrToClipboardExtension extends Extension {
             this._screenshotUiButton?.get_parent()?.remove_child(this._screenshotUiButton);
             this._screenshotUiButton?.destroy();
         } catch (e) {
-            console.warn('[ocr-to-clipboard] failed to remove button from screenshot UI', e);
+            log.warn('failed to remove button from screenshot UI', e);
         }
         this._screenshotUiButton = null;
 
@@ -183,7 +184,7 @@ export default class OcrToClipboardExtension extends Extension {
             }
 
             this._notify('OCR Failed', err.message);
-            console.error('[ocr-to-clipboard]', err);
+            log.error(err);
         } finally {
             if (this._screenshotUiButton)
                 this._screenshotUiButton.checked = false;
