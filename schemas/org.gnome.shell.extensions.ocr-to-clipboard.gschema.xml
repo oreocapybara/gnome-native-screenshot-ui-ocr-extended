@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.ocr-to-clipboard"
+          path="/org/gnome/shell/extensions/ocr-to-clipboard/">
+    <key name="capture-ocr-shortcut" type="as">
+      <default><![CDATA[['<Super><Shift>o']]]></default>
+      <summary>Capture screen area and OCR to clipboard</summary>
+      <description>Keyboard shortcut that triggers area selection, OCR, and clipboard copy.</description>
+    </key>
+    <key name="show-panel-icon" type="b">
+      <default>true</default>
+      <summary>Show panel icon</summary>
+      <description>Whether to show the OCR to Clipboard icon in the top panel.</description>
+    </key>
+    <key name="show-notifications" type="b">
+      <default>true</default>
+      <summary>Show notifications</summary>
+      <description>Whether to show a notification banner after each OCR capture.</description>
+    </key>
+  </schema>
+</schemalist>

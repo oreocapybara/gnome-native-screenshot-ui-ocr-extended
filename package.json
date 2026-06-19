@@ -1,0 +1,25 @@
+{
+  "name": "screenshot-ocr",
+  "version": "1.0.0",
+  "description": "GNOME Shell extension: OCR GNOME's native screenshot picker to your clipboard",
+  "main": "extension.js",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oreocapybara/gnome-screenshot-ocr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/oreocapybara/gnome-screenshot-ocr/issues"
+  },
+  "homepage": "https://github.com/oreocapybara/gnome-screenshot-ocr#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.5.0"
+  }
+}
