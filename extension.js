@@ -72,15 +72,28 @@ export default class OcrToClipboardExtension extends Extension {
         this._panelIconChangedId = null;
         this._settings = null;
 
+        if (this._idleSourceId) {
+            GLib.source_remove(this._idleSourceId);
+            this._idleSourceId = null;
+        }
+
         this._indicator?.destroy();
         this._indicator = null;
 
-        this._notifSource?.destroy();
+        if (this._notifSource) {
+            this._notifSource.disconnect(this._notifSourceDestroyId);
+            this._notifSourceDestroyId = null;
+            this._notifSource.destroy();
+        }
         this._notifSource = null;
 
         try {
-            this._screenshotUiButton?.get_parent()?.remove_child(this._screenshotUiButton);
-            this._screenshotUiButton?.destroy();
+            if (this._screenshotUiButton) {
+                this._screenshotUiButton.disconnect(this._screenshotUiButtonClickedId);
+                this._screenshotUiButtonClickedId = null;
+                this._screenshotUiButton.get_parent()?.remove_child(this._screenshotUiButton);
+                this._screenshotUiButton.destroy();
+            }
         } catch (e) {
             log.warn('failed to remove button from screenshot UI', e);
         }
@@ -107,7 +120,7 @@ export default class OcrToClipboardExtension extends Extension {
     _patchScreenshotUI() {
         const ui = Main.screenshotUI;
         if (!ui?._typeButtonContainer) {
-            console.warn('[ocr-to-clipboard] Main.screenshotUI._typeButtonContainer not found; skipping PrtSc integration');
+            log.warn('Main.screenshotUI._typeButtonContainer not found; skipping PrtSc integration');
             return;
         }
 
@@ -127,7 +140,7 @@ export default class OcrToClipboardExtension extends Extension {
             x_expand: true,
             child: box,
         });
-        this._screenshotUiButton.connect('clicked', () => {
+        this._screenshotUiButtonClickedId = this._screenshotUiButton.connect('clicked', () => {
             // toggle_mode flips .checked before 'clicked' fires, so this
             // tells us whether the user just turned OCR mode on or off.
             const enteringOcrMode = this._screenshotUiButton.checked;
@@ -139,7 +152,8 @@ export default class OcrToClipboardExtension extends Extension {
             // _finishClosing() while the 'closed' handler runs.
             const closedId = ui.connect('closed', () => {
                 ui.disconnect(closedId);
-                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                this._idleSourceId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                    this._idleSourceId = null;
                     if (enteringOcrMode) {
                         this._runCapture();
                     } else {
@@ -200,7 +214,7 @@ export default class OcrToClipboardExtension extends Extension {
                 title: 'OCR to Clipboard',
                 icon: this._icon,
             });
-            this._notifSource.connect('destroy', () => {
+            this._notifSourceDestroyId = this._notifSource.connect('destroy', () => {
                 this._notifSource = null;
             });
             Main.messageTray.add(this._notifSource);
