@@ -22,7 +22,7 @@ class OcrIndicator extends PanelMenu.Button {
         // attach our own rather than relying on the legacy button-press-event
         // signal (which modern GNOME Shell's gesture-based input no longer
         // reliably delivers to non-menu panel buttons).
-        super._init(0.0, 'OCR to Clipboard', true);
+        super._init(0.0, 'Native Screenshot UI OCR Extended', true);
 
         this.add_child(new St.Icon({
             gicon,
@@ -215,7 +215,7 @@ export default class OcrToClipboardExtension extends Extension {
 
         if (!this._notifSource) {
             this._notifSource = new MessageTray.Source({
-                title: 'OCR to Clipboard',
+                title: 'Native Screenshot UI OCR Extended',
                 icon: this._icon,
             });
             this._notifSourceDestroyId = this._notifSource.connect('destroy', () => {
