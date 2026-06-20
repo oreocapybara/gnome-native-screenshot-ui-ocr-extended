@@ -1,5 +1,7 @@
 # Native Screenshot UI OCR Extended
 
+![alt text](demo.gif)
+
 A GNOME Shell extension that adds OCR (text extraction) to GNOME's native
 screenshot picker. Select an area of the screen, and the recognized text
 is copied straight to your clipboard — no separate screenshot tool, no
