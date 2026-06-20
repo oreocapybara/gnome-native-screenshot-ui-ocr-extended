@@ -44,6 +44,9 @@ export default class OcrToClipboardExtension extends Extension {
         this._icon = Gio.icon_new_for_string(
             GLib.build_filenamev([this.path, 'icons', 'extract-text-symbolic.svg'])
         );
+        this._panelIcon = Gio.icon_new_for_string(
+            GLib.build_filenamev([this.path, 'icons', 'extract-text-panel-symbolic.svg'])
+        );
 
         this._settings = this.getSettings();
 
@@ -100,12 +103,13 @@ export default class OcrToClipboardExtension extends Extension {
         this._screenshotUiButton = null;
 
         this._icon = null;
+        this._panelIcon = null;
     }
 
     _updatePanelIcon() {
         const shouldShow = this._settings.get_boolean('show-panel-icon');
         if (shouldShow && !this._indicator) {
-            this._indicator = new OcrIndicator(this._icon, () => this._runCapture());
+            this._indicator = new OcrIndicator(this._panelIcon, () => this._runCapture());
             Main.panel.addToStatusArea(this.uuid, this._indicator);
         } else if (!shouldShow && this._indicator) {
             this._indicator.destroy();
