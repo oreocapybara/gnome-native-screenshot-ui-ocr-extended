@@ -12,8 +12,10 @@ saved image left behind.
 - **Three ways to trigger it:**
   - A panel icon in the top bar.
   - A global keyboard shortcut (`Super+Shift+O` by default, rebindable).
-  - An "Extract Text" button added directly into GNOME's native `PrtSc`
-    screenshot overlay, alongside Screen/Window/Selection.
+  - An "Extract Text" toggle added directly into GNOME's native `PrtSc`
+    screenshot overlay, next to the Show Pointer button by default
+    (optionally movable alongside Screen/Window/Selection instead — see
+    Preferences and Known Issues below).
 - While an OCR capture is active, Screen capture, Window capture, the
   screencast toggle, and the cursor-visibility toggle are disabled (cursor
   is always excluded from OCR captures) — only area selection makes sense
@@ -76,6 +78,25 @@ Open via the GNOME Extensions app (gear icon next to this extension) or
 
 - **Show Panel Icon** — show/hide the top bar icon.
 - **Show Notifications** — enable/disable the post-capture notification.
+- **Overlay Button Placement** — a dropdown with two options:
+  - *Bottom Row (Icon Only)* (default) — next to Show Pointer, no known
+    issues.
+  - *Top Row (With Label)* — next to Screen/Window/Selection, with a
+    label — see Known Issues.
+
+## Known Issues
+
+- Choosing **Top Row (With Label)** in the placement preference above can
+  make that entire row stretch to the full screen width after the system
+  suspends or the screen blanks. This is a GNOME Shell layout bug
+  triggered specifically by a 4th button being present in that row, not
+  by anything this extension draws — the three native buttons are equally
+  affected, confirmed by removing this extension's button and by
+  comparing allocated widths directly. It's purely cosmetic (clicking
+  still works) and clears up if you close and reopen the screenshot
+  overlay. The default placement (Bottom Row) isn't affected, since that
+  row uses a different, non-homogeneous container that isn't subject to
+  this bug.
 
 ## License
 

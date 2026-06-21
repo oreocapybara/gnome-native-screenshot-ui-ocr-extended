@@ -17,5 +17,10 @@
       <summary>Show notifications</summary>
       <description>Whether to show a notification banner after each OCR capture.</description>
     </key>
+    <key name="show-overlay-button-in-type-row" type="b">
+      <default>false</default>
+      <summary>Place the Extract Text button next to Screen/Window/Selection</summary>
+      <description>If enabled, the Extract Text button appears in the top row alongside Screen/Window/Selection, with its own label. If disabled (default), it appears as an icon-only toggle next to Show Pointer instead. Known issue: placing it in the top row can make that row's buttons stretch to the full screen width after the system suspends or the screen blanks (a GNOME Shell layout bug triggered by having a 4th button in that row) - enable this only if you've confirmed it doesn't affect your system, or are willing to close and reopen the screenshot overlay to clear it when it happens.</description>
+    </key>
   </schema>
 </schemalist>
