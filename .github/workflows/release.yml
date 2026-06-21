@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packaging tools
+        run: sudo apt-get update && sudo apt-get install -y libglib2.0-bin zip
+
+      - name: Compile settings schema
+        run: glib-compile-schemas schemas/
+
+      - name: Package extension
+        run: |
+          zip -r ocr-to-clipboard@oreocapybara.shell-extension.zip \
+            extension.js prefs.js ocrProcessor.js log.js metadata.json \
+            icons schemas
+
+      - name: Create/update release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ocr-to-clipboard@oreocapybara.shell-extension.zip
+          generate_release_notes: true
