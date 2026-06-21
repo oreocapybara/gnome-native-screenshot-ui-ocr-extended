@@ -3,3 +3,4 @@ schemas/gschemas.compiled
 *.claude
 node_modules/
 venv/
+n.superpowers/
