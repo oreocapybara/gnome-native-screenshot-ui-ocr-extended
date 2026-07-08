@@ -20,14 +20,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for LABEL in auto-pr release; do
-            if ! gh label view "$LABEL" >/dev/null 2>&1; then
-              gh label create "$LABEL" --color 0E8A16 --description "Automatically created by workflow"
-              echo "Created label $LABEL"
-            else
-              echo "Label $LABEL already exists"
-            fi
-          done
+          gh label create auto-pr --color 0E8A16 --description "Automatically created by workflow" --force
+          gh label create release --color 0E8A16 --description "Automatically created by workflow" --force
+          echo "Labels are ready"
 
       - name: Create Release Pull Request to main
         env:
