@@ -12,12 +12,24 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   create-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Ensure auto-pr label exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh label view auto-pr >/dev/null 2>&1; then
+            gh label create auto-pr --color 0E8A16 --description "Automatically created by workflow"
+            echo "Created label auto-pr"
+          else
+            echo "Label auto-pr already exists"
+          fi
 
       - name: Create Pull Request to dev
         env:
