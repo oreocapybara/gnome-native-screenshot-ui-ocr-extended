@@ -4,6 +4,10 @@
   "description": "Adds OCR to GNOME's native screenshot picker and panel: select an area, extract its text, and copy it straight to your clipboard. Requires tesseract (e.g. `sudo dnf install tesseract` or `sudo apt install tesseract-ocr`) to be installed separately.",
   "shell-version": ["45", "46", "47", "48", "49", "50"],
   "url": "https://github.com/oreocapybara/gnome-native-screenshot-ui-ocr-extended",
+  "donations": {
+    "github": "oreocapybara",
+    "kofi": "oreodoescode"
+  },
   "settings-schema": "org.gnome.shell.extensions.ocr-to-clipboard",
   "version": 1,
   "version-name": "0.1.0"
