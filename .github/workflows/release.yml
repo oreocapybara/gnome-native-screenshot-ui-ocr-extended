@@ -2,6 +2,8 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   pull_request:
@@ -16,7 +18,26 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install packaging tools
-        run: sudo apt-get update && sudo apt-get install -y libglib2.0-bin zip
+        run: sudo apt-get update && sudo apt-get install -y jq libglib2.0-bin zip
+
+      - name: Resolve release tag
+        id: release_tag
+        if: github.event_name == 'push'
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            tag_name="$GITHUB_REF_NAME"
+          else
+            version_name="$(jq -r '."version-name" // empty' metadata.json)"
+
+            if [ -z "$version_name" ]; then
+              echo "metadata.json is missing version-name" >&2
+              exit 1
+            fi
+
+            tag_name="v${version_name#v}"
+          fi
+
+          echo "tag_name=$tag_name" >> "$GITHUB_OUTPUT"
 
       - name: Compile settings schema
         run: glib-compile-schemas schemas/
@@ -28,8 +49,10 @@ jobs:
             icons schemas
 
       - name: Create/update release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.release_tag.outputs.tag_name }}
+          target_commitish: ${{ github.sha }}
           files: ocr-to-clipboard@oreocapybara.shell-extension.zip
           generate_release_notes: true
