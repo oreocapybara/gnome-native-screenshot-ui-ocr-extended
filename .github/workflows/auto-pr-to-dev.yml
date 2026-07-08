@@ -1,0 +1,50 @@
+name: Auto PR to Dev
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'feat/**'
+      - 'fix/**'
+      - 'hotfix/**'
+      - 'refactor/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure auto-pr label exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create auto-pr --color 0E8A16 --description "Automatically created by workflow" --force
+          echo "Label auto-pr is ready"
+
+      - name: Create Pull Request to dev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if a PR already exists for this branch targeting dev
+          EXISTING_PR=$(gh pr list --head "${{ github.ref_name }}" --base dev --json number --jq '.[0].number')
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR #$EXISTING_PR already exists for ${{ github.ref_name }} → dev"
+          else
+            gh pr create \
+              --base dev \
+              --head "${{ github.ref_name }}" \
+              --title "Merge ${{ github.ref_name }} into dev" \
+              --body "Automated PR to merge \`${{ github.ref_name }}\` into \`dev\`.
+
+          ---
+          *This PR was created automatically by GitHub Actions.*" \
+              --label "auto-pr"
+            echo "Created PR for ${{ github.ref_name }} → dev"
+          fi
