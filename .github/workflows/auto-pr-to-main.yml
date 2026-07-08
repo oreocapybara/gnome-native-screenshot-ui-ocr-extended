@@ -6,14 +6,23 @@ on:
       - dev
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   create-release-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Ensure labels exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create auto-pr --color 0E8A16 --description "Automatically created by workflow" --force
+          gh label create release --color 0E8A16 --description "Automatically created by workflow" --force
+          echo "Labels are ready"
 
       - name: Create Release Pull Request to main
         env:

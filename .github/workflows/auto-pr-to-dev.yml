@@ -10,14 +10,22 @@ on:
       - 'refactor/**'
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   create-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Ensure auto-pr label exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create auto-pr --color 0E8A16 --description "Automatically created by workflow" --force
+          echo "Label auto-pr is ready"
 
       - name: Create Pull Request to dev
         env:
