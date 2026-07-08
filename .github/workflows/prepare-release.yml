@@ -1,0 +1,94 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump type
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      branch:
+        description: Branch to update
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Bump metadata version
+        id: bump
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const metadataPath = 'metadata.json';
+          const bump = process.env.BUMP;
+          const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+          const currentVersion = metadata['version-name'];
+
+          if (!/^\d+\.\d+\.\d+$/.test(currentVersion)) {
+            throw new Error(`metadata.json version-name must be semver without a leading v. Found: ${currentVersion}`);
+          }
+
+          const parts = currentVersion.split('.').map(Number);
+
+          if (bump === 'major') {
+            parts[0] += 1;
+            parts[1] = 0;
+            parts[2] = 0;
+          } else if (bump === 'minor') {
+            parts[1] += 1;
+            parts[2] = 0;
+          } else if (bump === 'patch') {
+            parts[2] += 1;
+          } else {
+            throw new Error(`Unsupported bump type: ${bump}`);
+          }
+
+          metadata.version = Number(metadata.version || 0) + 1;
+          metadata['version-name'] = parts.join('.');
+          fs.writeFileSync(metadataPath, `${JSON.stringify(metadata, null, 2)}\n`);
+
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version_name=${metadata['version-name']}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `tag_name=v${metadata['version-name']}\n`);
+          NODE
+
+      - name: Ensure release tag does not already exist
+        env:
+          TAG_NAME: ${{ steps.bump.outputs.tag_name }}
+        run: |
+          if git ls-remote --tags origin "refs/tags/$TAG_NAME" | grep -q "$TAG_NAME"; then
+            echo "Tag $TAG_NAME already exists. Bump metadata.json to a new version before releasing." >&2
+            exit 1
+          fi
+
+      - name: Commit version bump
+        env:
+          VERSION_NAME: ${{ steps.bump.outputs.version_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add metadata.json
+          git commit -m "chore: prepare v$VERSION_NAME"
+          git push origin "HEAD:${{ inputs.branch }}"

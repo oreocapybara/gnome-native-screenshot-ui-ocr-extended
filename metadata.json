@@ -5,6 +5,6 @@
   "shell-version": ["45", "46", "47", "48", "49", "50"],
   "url": "https://github.com/oreocapybara/gnome-native-screenshot-ui-ocr-extended",
   "settings-schema": "org.gnome.shell.extensions.ocr-to-clipboard",
-  "version": 1,
-  "version-name": "0.1.0"
+  "version": 2,
+  "version-name": "0.1.1"
 }
