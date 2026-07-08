@@ -54,10 +54,10 @@ export default class OcrToClipboardExtension extends Extension {
         this._settings = this.getSettings();
 
         this._updatePanelIcon();
-        this._panelIconChangedId = this._settings.connect(
-            'changed::show-panel-icon', () => this._updatePanelIcon());
-        this._overlayPlacementChangedId = this._settings.connect(
-            'changed::show-overlay-button-in-type-row', () => this._rebuildScreenshotUiButton());
+        this._settings.connectObject(
+            'changed::show-panel-icon', () => this._updatePanelIcon(),
+            'changed::show-overlay-button-in-type-row', () => this._rebuildScreenshotUiButton(),
+            this);
 
         Main.wm.addKeybinding(
             'capture-ocr-shortcut',
@@ -76,11 +76,7 @@ export default class OcrToClipboardExtension extends Extension {
 
     disable() {
         Main.wm.removeKeybinding('capture-ocr-shortcut');
-        this._settings.disconnect(this._panelIconChangedId);
-        this._panelIconChangedId = null;
-        this._settings.disconnect(this._overlayPlacementChangedId);
-        this._overlayPlacementChangedId = null;
-        this._settings = null;
+        this._settings.disconnectObject(this);
 
         if (this._idleSourceId) {
             GLib.source_remove(this._idleSourceId);
@@ -91,14 +87,14 @@ export default class OcrToClipboardExtension extends Extension {
         this._indicator = null;
 
         if (this._notifSource) {
-            this._notifSource.disconnect(this._notifSourceDestroyId);
-            this._notifSourceDestroyId = null;
+            this._notifSource.disconnectObject(this);
             this._notifSource.destroy();
         }
         this._notifSource = null;
 
         this._teardownScreenshotUI();
 
+        this._settings = null;
         this._icon = null;
         this._panelIcon = null;
         this._overlayIcon = null;
@@ -107,8 +103,7 @@ export default class OcrToClipboardExtension extends Extension {
     _teardownScreenshotUI() {
         try {
             if (this._screenshotUiButton) {
-                this._screenshotUiButton.disconnect(this._screenshotUiButtonClickedId);
-                this._screenshotUiButtonClickedId = null;
+                this._screenshotUiButton.disconnectObject(this);
                 this._screenshotUiButton.get_parent()?.remove_child(this._screenshotUiButton);
                 this._screenshotUiButton.destroy();
             }
@@ -208,7 +203,7 @@ export default class OcrToClipboardExtension extends Extension {
             ui._showPointerButtonContainer.add_child(this._screenshotUiButton);
         }
 
-        this._screenshotUiButtonClickedId = this._screenshotUiButton.connect('clicked', () => {
+        this._screenshotUiButton.connectObject('clicked', () => {
             // toggle_mode flips .checked before 'clicked' fires, so this
             // tells us whether the user just turned OCR mode on or off.
             const enteringOcrMode = this._screenshotUiButton.checked;
@@ -218,8 +213,8 @@ export default class OcrToClipboardExtension extends Extension {
             // gets ignored (the UI thinks it's still open/closing). Defer
             // with idle_add too, since we're still on the same call stack as
             // _finishClosing() while the 'closed' handler runs.
-            const closedId = ui.connect('closed', () => {
-                ui.disconnect(closedId);
+            ui.connectObject('closed', () => {
+                ui.disconnectObject(this);
                 this._idleSourceId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                     this._idleSourceId = null;
                     if (enteringOcrMode) {
@@ -232,9 +227,9 @@ export default class OcrToClipboardExtension extends Extension {
                     }
                     return GLib.SOURCE_REMOVE;
                 });
-            });
+            }, this);
             ui.close();
-        });
+        }, this);
     }
 
     async _runCapture() {
@@ -280,9 +275,9 @@ export default class OcrToClipboardExtension extends Extension {
                 title: 'Native Screenshot UI OCR Extended',
                 icon: this._icon,
             });
-            this._notifSourceDestroyId = this._notifSource.connect('destroy', () => {
+            this._notifSource.connectObject('destroy', () => {
                 this._notifSource = null;
-            });
+            }, this);
             Main.messageTray.add(this._notifSource);
         }
 
