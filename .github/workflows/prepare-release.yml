@@ -83,7 +83,8 @@ jobs:
             exit 1
           fi
 
-      - name: Commit version bump
+      - name: Commit version bump to a release branch
+        id: push
         env:
           VERSION_NAME: ${{ steps.bump.outputs.version_name }}
         run: |
@@ -91,4 +92,29 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add metadata.json
           git commit -m "chore: prepare v$VERSION_NAME"
-          git push origin "HEAD:${{ inputs.branch }}"
+
+          release_branch="release/v$VERSION_NAME"
+          git switch -c "$release_branch"
+          git push -u origin "$release_branch"
+          echo "release_branch=$release_branch" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure release label exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh label create release --color 0E8A16 --description "Automatically created by workflow" --force
+
+      - name: Create pull request for the release bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_NAME: ${{ steps.bump.outputs.version_name }}
+          RELEASE_BRANCH: ${{ steps.push.outputs.release_branch }}
+        run: |
+          gh pr create \
+            --base "${{ inputs.branch }}" \
+            --head "$RELEASE_BRANCH" \
+            --title "chore: prepare v$VERSION_NAME" \
+            --body "Automated PR to bump \`metadata.json\` to v$VERSION_NAME.
+
+          ---
+          *This PR was created automatically by GitHub Actions.*" \
+            --label "release"
