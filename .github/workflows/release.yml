@@ -48,11 +48,21 @@ jobs:
             extension.js prefs.js ocrProcessor.js log.js metadata.json \
             icons schemas
 
+      - name: Package extensions.gnome.org upload
+        # ego compiles the schema itself on upload; a pre-compiled
+        # gschemas.compiled in the zip is unnecessary and can trip review.
+        run: |
+          zip -r ocr-to-clipboard@oreocapybara.ego.zip \
+            extension.js prefs.js ocrProcessor.js log.js metadata.json \
+            icons schemas -x schemas/gschemas.compiled
+
       - name: Create/update release
         if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release_tag.outputs.tag_name }}
           target_commitish: ${{ github.sha }}
-          files: ocr-to-clipboard@oreocapybara.shell-extension.zip
+          files: |
+            ocr-to-clipboard@oreocapybara.shell-extension.zip
+            ocr-to-clipboard@oreocapybara.ego.zip
           generate_release_notes: true
