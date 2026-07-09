@@ -8,6 +8,7 @@ on:
       - 'fix/**'
       - 'hotfix/**'
       - 'refactor/**'
+      - 'ci/**'
 
 permissions:
   contents: write
