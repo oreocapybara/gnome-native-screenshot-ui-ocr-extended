@@ -99,21 +99,22 @@ function _captureViaNativeUI() {
         let restoreButtons = () => {};
         const restoreSave = _patchSaveScreenshot(ui);
 
-        const takenId = ui.connect('screenshot-taken', (_ui, file) => {
-            gotFile = true;
-            cleanup();
-            resolve(file.get_path());
-        });
-
-        const closedId = ui.connect('closed', () => {
-            cleanup();
-            if (!gotFile)
-                reject(ocrError('CANCELLED', 'Screenshot was cancelled'));
-        });
+        const tracker = {};
+        ui.connectObject(
+            'screenshot-taken', (_ui, file) => {
+                gotFile = true;
+                cleanup();
+                resolve(file.get_path());
+            },
+            'closed', () => {
+                cleanup();
+                if (!gotFile)
+                    reject(ocrError('CANCELLED', 'Screenshot was cancelled'));
+            },
+            tracker);
 
         function cleanup() {
-            ui.disconnect(takenId);
-            ui.disconnect(closedId);
+            ui.disconnectObject(tracker);
             restoreButtons();
             restoreSave();
         }
