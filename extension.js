@@ -165,7 +165,9 @@ export default class OcrToClipboardExtension extends Extension {
             // Selection/Screen/Window buttons use - their icon's size/stroke
             // weight comes from CSS keyed off this class, not icon properties.
             const box = new St.BoxLayout({
-                vertical: true,
+                ...('orientation' in St.BoxLayout.prototype
+                    ? { orientation: Clutter.Orientation.VERTICAL }
+                    : { vertical: true }),
                 style_class: 'icon-label-button-container',
             });
             box.add_child(new St.Icon({ gicon: this._icon }));
