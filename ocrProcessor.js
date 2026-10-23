@@ -129,14 +129,29 @@ function _captureViaNativeUI() {
     });
 }
 
+// Chinese/Japanese characters (CJK ideographs, kana, CJK and fullwidth
+// punctuation). Hangul is deliberately excluded - Korean separates words
+// with spaces, so its spacing must be kept.
+const CJK = '\\u3000-\\u30ff\\u3400-\\u4dbf\\u4e00-\\u9fff\\uf900-\\ufaff\\uff00-\\uffef';
+const CJK_LINE_BREAK = new RegExp(`([${CJK}])\\n(?=[${CJK}])`, 'g');
+const CJK_SPACE = new RegExp(`([${CJK}]) +(?=[${CJK}])`, 'g');
+
 // Tesseract emits a single '\n' for line-wraps within a paragraph and '\n\n'
 // for actual paragraph breaks. Copying that raw would paste wrapped
 // sentences as broken-looking separate lines, so single newlines are
 // rejoined into flowing text while real paragraph breaks are kept.
+// Chinese/Japanese don't put spaces between words, so wraps between CJK
+// characters are joined with nothing, and the spaces tesseract's jpn/chi
+// models insert between CJK characters are dropped.
 function _reflowText(text) {
     return text
         .split(/\n{2,}/)
-        .map(paragraph => paragraph.replace(/\n/g, ' ').replace(/ {2,}/g, ' ').trim())
+        .map(paragraph => paragraph
+            .replace(CJK_LINE_BREAK, '$1')
+            .replace(/\n/g, ' ')
+            .replace(CJK_SPACE, '$1')
+            .replace(/ {2,}/g, ' ')
+            .trim())
         .filter(paragraph => paragraph.length > 0)
         .join('\n\n');
 }

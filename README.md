@@ -102,7 +102,8 @@ Open via the GNOME Extensions app (gear icon next to this extension) or
   its data installed (`brew install tesseract-lang`, or your distro's
   `tesseract-langpack-*` packages); the **Installed Languages** row lists
   what's available and flags any missing code. For vertical Japanese use
-  `jpn_vert`.
+  `jpn_vert`. Line wraps and the spaces tesseract inserts between
+  Chinese/Japanese characters are removed automatically.
 - **Custom Tesseract Path** — full path to a tesseract binary (type it,
   or use the file picker). Leave empty to auto-detect. The **Tesseract
   in Use** row below it shows which binary will actually run.
