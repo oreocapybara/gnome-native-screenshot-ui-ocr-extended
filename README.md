@@ -90,6 +90,9 @@ preview.
 Open via the GNOME Extensions app (gear icon next to this extension) or
 `gnome-extensions prefs ocr-to-clipboard@oreocapybara`:
 
+- **Keyboard Shortcut** — click the row and press a new key combination
+  (Escape cancels, Backspace disables it); the undo button restores
+  `Super+Shift+O`. Takes effect immediately.
 - **Show Panel Icon** — show/hide the top bar icon.
 - **Show Notifications** — enable/disable the post-capture notification.
 - **Overlay Button Placement** — a dropdown with two options:
