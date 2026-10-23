@@ -22,11 +22,16 @@ PARAGRAPH_ONE = (
 PARAGRAPH_TWO = "This is a separate paragraph."
 
 
+CJK = "\u3000-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef"
+
+
 def reflow(text):
     paragraphs = re.split(r"\n{2,}", text)
     out = []
     for p in paragraphs:
+        p = re.sub(rf"([{CJK}])\n(?=[{CJK}])", r"\1", p)
         p = re.sub(r"\n", " ", p)
+        p = re.sub(rf"([{CJK}]) +(?=[{CJK}])", r"\1", p)
         p = re.sub(r" {2,}", " ", p).strip()
         if p:
             out.append(p)

@@ -42,6 +42,20 @@ saved image left behind.
   sudo apt install tesseract-ocr    # Debian/Ubuntu
   ```
 
+  On immutable distros (Bazzite, Silverblue, etc.) you can install it
+  with [Homebrew](https://brew.sh) instead of layering it:
+
+  ```sh
+  brew install tesseract
+  ```
+
+  The extension looks for tesseract on `PATH` first, then in Homebrew's
+  standard locations (`$HOMEBREW_PREFIX/bin`,
+  `/home/linuxbrew/.linuxbrew/bin`, `~/.linuxbrew/bin`). GNOME Shell
+  doesn't inherit your shell's `PATH`, so this fallback is what lets a
+  Homebrew install be found. For any other location, set **Custom
+  Tesseract Path** in Preferences.
+
   If tesseract isn't found, the extension will tell you via a
   notification rather than failing silently.
 
@@ -76,6 +90,9 @@ preview.
 Open via the GNOME Extensions app (gear icon next to this extension) or
 `gnome-extensions prefs ocr-to-clipboard@oreocapybara`:
 
+- **Keyboard Shortcut** — click the row and press a new key combination
+  (Escape cancels, Backspace disables it); the undo button restores
+  `Super+Shift+O`. Takes effect immediately.
 - **Show Panel Icon** — show/hide the top bar icon.
 - **Show Notifications** — enable/disable the post-capture notification.
 - **Overlay Button Placement** — a dropdown with two options:
@@ -83,6 +100,16 @@ Open via the GNOME Extensions app (gear icon next to this extension) or
     issues.
   - *Top Row (With Label)* — next to Screen/Window/Selection, with a
     label — see Known Issues.
+- **Languages** — tesseract language codes, e.g. `eng`, `jpn` or
+  `jpn+eng` for mixed text (commas/spaces also work). Each language needs
+  its data installed (`brew install tesseract-lang`, or your distro's
+  `tesseract-langpack-*` packages); the **Installed Languages** row lists
+  what's available and flags any missing code. For vertical Japanese use
+  `jpn_vert`. Line wraps and the spaces tesseract inserts between
+  Chinese/Japanese characters are removed automatically.
+- **Custom Tesseract Path** — full path to a tesseract binary (type it,
+  or use the file picker). Leave empty to auto-detect. The **Tesseract
+  in Use** row below it shows which binary will actually run.
 
 ## Known Issues
 
