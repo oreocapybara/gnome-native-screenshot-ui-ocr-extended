@@ -1,6 +1,7 @@
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
-// Only imports GLib, so this module is safe to load from both the shell
+// Only imports Gio/GLib, so this module is safe to load from both the shell
 // process (ocrProcessor.js) and the separate prefs process (prefs.js).
 
 // GNOME Shell's PATH comes from the session, not a login shell, so a
@@ -65,4 +66,36 @@ export function resolveTesseract(customPath = '') {
         return { path: brew, source: 'homebrew' };
 
     return { path: null, source: null };
+}
+
+/**
+ * Normalises the 'ocr-languages' setting into tesseract's '-l' syntax,
+ * accepting '+', ',' or whitespace as separators (e.g. 'jpn, eng').
+ * @param {string} languages
+ * @returns {string} e.g. 'jpn+eng', or '' for tesseract's default
+ */
+export function normalizeLanguages(languages) {
+    return languages.split(/[\s,+]+/).filter(Boolean).join('+');
+}
+
+/**
+ * Lists the language packs a tesseract binary has installed. Synchronous,
+ * so only for prefs - the shell process must never block on a subprocess.
+ * @param {string} tesseractPath
+ * @returns {string[]|null} null if tesseract couldn't be run
+ */
+export function listLanguagesSync(tesseractPath) {
+    try {
+        const proc = Gio.Subprocess.new(
+            [tesseractPath, '--list-langs'],
+            Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE
+        );
+        const [, stdout] = proc.communicate_utf8(null, null);
+        if (!proc.get_successful())
+            return null;
+        // First line is the 'List of available languages in "...":' header.
+        return stdout.split('\n').slice(1).map(l => l.trim()).filter(Boolean);
+    } catch {
+        return null;
+    }
 }

@@ -97,6 +97,12 @@ Open via the GNOME Extensions app (gear icon next to this extension) or
     issues.
   - *Top Row (With Label)* — next to Screen/Window/Selection, with a
     label — see Known Issues.
+- **Languages** — tesseract language codes, e.g. `eng`, `jpn` or
+  `jpn+eng` for mixed text (commas/spaces also work). Each language needs
+  its data installed (`brew install tesseract-lang`, or your distro's
+  `tesseract-langpack-*` packages); the **Installed Languages** row lists
+  what's available and flags any missing code. For vertical Japanese use
+  `jpn_vert`.
 - **Custom Tesseract Path** — full path to a tesseract binary (type it,
   or use the file picker). Leave empty to auto-detect. The **Tesseract
   in Use** row below it shows which binary will actually run.

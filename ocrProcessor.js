@@ -4,7 +4,7 @@ import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import * as log from './log.js';
-import { resolveTesseract } from './tesseractPath.js';
+import { normalizeLanguages, resolveTesseract } from './tesseractPath.js';
 
 Gio._promisify(Gio.Subprocess.prototype, 'communicate_utf8_async');
 
@@ -141,7 +141,7 @@ function _reflowText(text) {
         .join('\n\n');
 }
 
-async function _runTesseract(filePath, customPath) {
+async function _runTesseract(filePath, { customPath, languages }) {
     const { path: tesseract, source } = resolveTesseract(customPath);
     if (!tesseract) {
         if (source === 'custom')
@@ -152,7 +152,7 @@ async function _runTesseract(filePath, customPath) {
     let proc;
     try {
         proc = Gio.Subprocess.new(
-            [tesseract, filePath, 'stdout'],
+            [tesseract, filePath, 'stdout', ...(languages ? ['-l', languages] : [])],
             Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
         );
     } catch (e) {
@@ -178,16 +178,18 @@ function _cleanupFile(filePath) {
 /**
  * Runs the capture pipeline via the native screenshot UI, then OCRs the
  * resulting screenshot.
- * @param {string} [customPath] the 'tesseract-path' setting ('' = auto-detect)
+ * @param {object} [options]
+ * @param {string} [options.customPath] the 'tesseract-path' setting ('' = auto-detect)
+ * @param {string} [options.languages] the 'ocr-languages' setting ('' = tesseract's default)
  * @returns {Promise<string>} trimmed OCR text (may be '' if no text found)
  * @throws {Error} tagged with .code: 'CANCELLED' | 'TESSERACT_NOT_FOUND' |
  *   'TESSERACT_CUSTOM_INVALID' | 'TESSERACT_FAILED'
  */
-export async function captureAndOcr(customPath = '') {
+export async function captureAndOcr({ customPath = '', languages = '' } = {}) {
     const filePath = await _captureViaNativeUI();
 
     try {
-        return await _runTesseract(filePath, customPath);
+        return await _runTesseract(filePath, { customPath, languages: normalizeLanguages(languages) });
     } finally {
         _cleanupFile(filePath);
     }

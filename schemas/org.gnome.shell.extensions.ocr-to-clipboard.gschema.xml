@@ -27,5 +27,10 @@
       <summary>Custom tesseract executable</summary>
       <description>Full path to the tesseract binary to use. Leave empty to auto-detect: tesseract on PATH first, then a Homebrew install (e.g. /home/linuxbrew/.linuxbrew/bin/tesseract). A leading ~ is expanded to the home directory.</description>
     </key>
+    <key name="ocr-languages" type="s">
+      <default>'eng'</default>
+      <summary>OCR languages</summary>
+      <description>Tesseract language codes to recognize, joined with '+' (commas or spaces also work), e.g. 'eng', 'jpn' or 'jpn+eng'. Each needs its traineddata installed (e.g. via the tesseract-lang package). Empty uses tesseract's default (eng).</description>
+    </key>
   </schema>
 </schemalist>

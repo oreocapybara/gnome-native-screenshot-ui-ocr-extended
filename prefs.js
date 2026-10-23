@@ -2,7 +2,7 @@ import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 
-import { resolveTesseract } from './tesseractPath.js';
+import { listLanguagesSync, normalizeLanguages, resolveTesseract } from './tesseractPath.js';
 
 import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
@@ -102,9 +102,40 @@ export default class OcrToClipboardPreferences extends ExtensionPreferences {
                 statusRow.subtitle = 'Not found - install tesseract or set a custom path';
             }
         };
-        settings.connect('changed::tesseract-path', updateStatus);
-        updateStatus();
         group.add(statusRow);
+
+        const langRow = new Adw.EntryRow({ title: 'Languages (e.g. eng, jpn, jpn+eng)' });
+        settings.bind('ocr-languages', langRow, 'text', Gio.SettingsBindFlags.DEFAULT);
+        group.add(langRow);
+
+        const langStatusRow = new Adw.ActionRow({ title: 'Installed Languages', subtitle_selectable: true });
+        let installed = null;
+        const updateLangStatus = () => {
+            if (!installed) {
+                langStatusRow.subtitle = 'Unavailable - tesseract not found';
+                return;
+            }
+            const wanted = normalizeLanguages(settings.get_string('ocr-languages'))
+                .split('+').filter(Boolean);
+            const missing = wanted.filter(lang => !installed.includes(lang));
+            const summary = installed.length > 12
+                ? `${installed.length} installed (${installed.filter(l => !l.includes('/')).slice(0, 12).join(', ')}, …)`
+                : installed.join(', ');
+            langStatusRow.subtitle = missing.length
+                ? `Not installed: ${missing.join(', ')}. ${summary}`
+                : summary;
+        };
+        settings.connect('changed::ocr-languages', updateLangStatus);
+        group.add(langStatusRow);
+
+        const refresh = () => {
+            updateStatus();
+            const { path } = resolveTesseract(settings.get_string('tesseract-path'));
+            installed = path ? listLanguagesSync(path) : null;
+            updateLangStatus();
+        };
+        settings.connect('changed::tesseract-path', refresh);
+        refresh();
 
         return group;
     }

@@ -241,7 +241,10 @@ export default class OcrToClipboardExtension extends Extension {
             this._screenshotUiButton.checked = true;
 
         try {
-            const text = await captureAndOcr(this._settings.get_string('tesseract-path'));
+            const text = await captureAndOcr({
+                customPath: this._settings.get_string('tesseract-path'),
+                languages: this._settings.get_string('ocr-languages'),
+            });
             if (!text) {
                 this._notify('No text found', 'The selected area did not contain recognizable text.');
                 return;
