@@ -4,6 +4,7 @@ import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import * as log from './log.js';
+import { resolveTesseract } from './tesseractPath.js';
 
 Gio._promisify(Gio.Subprocess.prototype, 'communicate_utf8_async');
 
@@ -140,15 +141,22 @@ function _reflowText(text) {
         .join('\n\n');
 }
 
-async function _runTesseract(filePath) {
+async function _runTesseract(filePath, customPath) {
+    const { path: tesseract, source } = resolveTesseract(customPath);
+    if (!tesseract) {
+        if (source === 'custom')
+            throw ocrError('TESSERACT_CUSTOM_INVALID', `${customPath.trim()} is not an executable file`);
+        throw ocrError('TESSERACT_NOT_FOUND', 'tesseract is not installed');
+    }
+
     let proc;
     try {
         proc = Gio.Subprocess.new(
-            ['tesseract', filePath, 'stdout'],
+            [tesseract, filePath, 'stdout'],
             Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
         );
-    } catch {
-        throw ocrError('TESSERACT_NOT_FOUND', 'tesseract is not installed');
+    } catch (e) {
+        throw ocrError('TESSERACT_FAILED', `failed to launch ${tesseract}: ${e.message}`);
     }
 
     const [stdout, stderr] = await proc.communicate_utf8_async(null, null);
@@ -170,14 +178,16 @@ function _cleanupFile(filePath) {
 /**
  * Runs the capture pipeline via the native screenshot UI, then OCRs the
  * resulting screenshot.
+ * @param {string} [customPath] the 'tesseract-path' setting ('' = auto-detect)
  * @returns {Promise<string>} trimmed OCR text (may be '' if no text found)
- * @throws {Error} tagged with .code: 'CANCELLED' | 'TESSERACT_NOT_FOUND' | 'TESSERACT_FAILED'
+ * @throws {Error} tagged with .code: 'CANCELLED' | 'TESSERACT_NOT_FOUND' |
+ *   'TESSERACT_CUSTOM_INVALID' | 'TESSERACT_FAILED'
  */
-export async function captureAndOcr() {
+export async function captureAndOcr(customPath = '') {
     const filePath = await _captureViaNativeUI();
 
     try {
-        return await _runTesseract(filePath);
+        return await _runTesseract(filePath, customPath);
     } finally {
         _cleanupFile(filePath);
     }

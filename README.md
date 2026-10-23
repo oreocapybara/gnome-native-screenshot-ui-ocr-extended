@@ -42,6 +42,20 @@ saved image left behind.
   sudo apt install tesseract-ocr    # Debian/Ubuntu
   ```
 
+  On immutable distros (Bazzite, Silverblue, etc.) you can install it
+  with [Homebrew](https://brew.sh) instead of layering it:
+
+  ```sh
+  brew install tesseract
+  ```
+
+  The extension looks for tesseract on `PATH` first, then in Homebrew's
+  standard locations (`$HOMEBREW_PREFIX/bin`,
+  `/home/linuxbrew/.linuxbrew/bin`, `~/.linuxbrew/bin`). GNOME Shell
+  doesn't inherit your shell's `PATH`, so this fallback is what lets a
+  Homebrew install be found. For any other location, set **Custom
+  Tesseract Path** in Preferences.
+
   If tesseract isn't found, the extension will tell you via a
   notification rather than failing silently.
 
@@ -83,6 +97,9 @@ Open via the GNOME Extensions app (gear icon next to this extension) or
     issues.
   - *Top Row (With Label)* — next to Screen/Window/Selection, with a
     label — see Known Issues.
+- **Custom Tesseract Path** — full path to a tesseract binary (type it,
+  or use the file picker). Leave empty to auto-detect. The **Tesseract
+  in Use** row below it shows which binary will actually run.
 
 ## Known Issues
 

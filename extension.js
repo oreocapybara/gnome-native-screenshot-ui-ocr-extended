@@ -241,7 +241,7 @@ export default class OcrToClipboardExtension extends Extension {
             this._screenshotUiButton.checked = true;
 
         try {
-            const text = await captureAndOcr();
+            const text = await captureAndOcr(this._settings.get_string('tesseract-path'));
             if (!text) {
                 this._notify('No text found', 'The selected area did not contain recognizable text.');
                 return;
@@ -254,7 +254,14 @@ export default class OcrToClipboardExtension extends Extension {
                 return; // silent abort, expected UX
 
             if (err.code === 'TESSERACT_NOT_FOUND') {
-                this._notify('Tesseract not installed', 'Install tesseract to use this extension.');
+                this._notify('Tesseract not installed',
+                    'Install tesseract, or set its location in the extension preferences.');
+                return;
+            }
+
+            if (err.code === 'TESSERACT_CUSTOM_INVALID') {
+                this._notify('Custom tesseract path is invalid',
+                    `${err.message}. Fix or clear it in the extension preferences.`);
                 return;
             }
 

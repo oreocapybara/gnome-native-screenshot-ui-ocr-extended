@@ -2,6 +2,8 @@ import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 
+import { resolveTesseract } from './tesseractPath.js';
+
 import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 export default class OcrToClipboardPreferences extends ExtensionPreferences {
@@ -43,5 +45,67 @@ export default class OcrToClipboardPreferences extends ExtensionPreferences {
             settings.set_boolean('show-overlay-button-in-type-row', placementRow.selected === 1);
         });
         group.add(placementRow);
+
+        page.add(this._buildTesseractGroup(window, settings));
+    }
+
+    _buildTesseractGroup(window, settings) {
+        const group = new Adw.PreferencesGroup({
+            title: 'Tesseract',
+            description: 'Leave the path empty to auto-detect tesseract on PATH, then in a ' +
+                'Homebrew install (e.g. /home/linuxbrew/.linuxbrew/bin/tesseract).',
+        });
+
+        const pathRow = new Adw.EntryRow({ title: 'Custom Tesseract Path' });
+        settings.bind('tesseract-path', pathRow, 'text', Gio.SettingsBindFlags.DEFAULT);
+
+        const browseButton = new Gtk.Button({
+            icon_name: 'document-open-symbolic',
+            tooltip_text: 'Choose tesseract executable',
+            valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
+        });
+        browseButton.connect('clicked', () => {
+            const dialog = new Gtk.FileDialog({ title: 'Choose tesseract executable' });
+            dialog.open(window, null, (_dialog, result) => {
+                try {
+                    const file = dialog.open_finish(result);
+                    if (file)
+                        settings.set_string('tesseract-path', file.get_path());
+                } catch {
+                    // Dismissed - nothing to do.
+                }
+            });
+        });
+        pathRow.add_suffix(browseButton);
+
+        const clearButton = new Gtk.Button({
+            icon_name: 'edit-clear-symbolic',
+            tooltip_text: 'Clear and auto-detect',
+            valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
+        });
+        clearButton.connect('clicked', () => settings.set_string('tesseract-path', ''));
+        pathRow.add_suffix(clearButton);
+        group.add(pathRow);
+
+        const statusRow = new Adw.ActionRow({ title: 'Tesseract in Use', subtitle_selectable: true });
+        const updateStatus = () => {
+            const { path, source } = resolveTesseract(settings.get_string('tesseract-path'));
+            clearButton.sensitive = source === 'custom';
+            if (path) {
+                const label = { custom: 'custom path', path: 'found on PATH', homebrew: 'Homebrew' }[source];
+                statusRow.subtitle = `${path} (${label})`;
+            } else if (source === 'custom') {
+                statusRow.subtitle = 'Custom path is not an executable file';
+            } else {
+                statusRow.subtitle = 'Not found - install tesseract or set a custom path';
+            }
+        };
+        settings.connect('changed::tesseract-path', updateStatus);
+        updateStatus();
+        group.add(statusRow);
+
+        return group;
     }
 }
